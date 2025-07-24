@@ -99,7 +99,7 @@ async def show_payment_history(message: Message, state: FSMContext):
 
         line = (
             f"<b>{address_str}</b> - <i>{month_name} {year}</i> - "
-            f"<b>{status_text}</b> (<i>{'Дата:' if language == "ru" else "Sana"} {date_str}</i>)"
+            f"<b>{status_text}</b> (<i>{'Дата:' if language == 'ru' else 'Sana'} {date_str}</i>)"
         )
         lines.append(line)
 
