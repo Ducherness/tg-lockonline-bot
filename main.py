@@ -14,8 +14,10 @@ dp.include_router(payment.router)
 dp.include_router(admin.router)
 
 async def main():
-    session = AiohttpSession(proxy="http://proxy.server:3128")
-    bot = Bot(token=config.BOT_TOKEN, session=session)
+    # session = AiohttpSession(proxy="http://45.153.160.6:50101")
+    # bot = Bot(token=config.BOT_TOKEN, session=session)
+
+    bot = Bot(token=config.BOT_TOKEN)
 
     await dp.start_polling(bot)
 
