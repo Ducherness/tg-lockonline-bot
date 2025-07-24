@@ -5,7 +5,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 from database.mongo import payments_collection, houses, users_collection
 from locations import get_city_name, get_region_name, get_city_id_by_name, get_region_id_by_name, get_districts_by_city_id, get_district_name, get_district_id_by_name
-from datetime import datetime
+from datetime import datetime, timedelta
 from bson import ObjectId
 
 router = Router()
@@ -30,18 +30,6 @@ def get_back_button(language: str = "ru"):
         [InlineKeyboardButton(text=text, callback_data="back")]
     ])
 
-# City/region translation now handled by locations.py
-
-from aiogram import Router, F, types
-from aiogram.types import Message, CallbackQuery, FSInputFile
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
-from database.mongo import payments_collection, houses, users_collection
-from locations import get_city_name, get_region_name, get_city_id_by_name, get_region_id_by_name, get_districts_by_city_id, get_district_name, get_district_id_by_name
-from datetime import datetime
-from bson import ObjectId
-
 @router.message(F.text.in_(["🧾 Мои оплаты", "🧾 To'lovlarim"]) | (F.text.lower() == "/history"))
 async def show_payment_history(message: Message, state: FSMContext):
     language = await get_user_language(message.from_user.id)
@@ -56,7 +44,6 @@ async def show_payment_history(message: Message, state: FSMContext):
         "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr"
     ]
 
-    # Find all payments for this user
     payments = payments_collection.find({"user_id": user_id, "status": {"$in": ["pending", "approved"]}})
     lines = []
     async for p in payments:
@@ -64,9 +51,8 @@ async def show_payment_history(message: Message, state: FSMContext):
         year = p.get("year")
         month = p.get("month")
         status = p.get("status")
-        created_at = p.get("created_at")  # Assume this is a datetime or ISO string
+        created_at = p.get("created_at")
 
-        # Address parts
         city = get_city_name(address.get("city"), language) if address.get("city") else ""
         district = get_district_name(address.get("district"), language) if address.get("district") else ""
         quarter = address.get("quarter", "")
@@ -74,7 +60,6 @@ async def show_payment_history(message: Message, state: FSMContext):
         entrance = address.get("entrance", "")
         apartment = address.get("apartment", "")
 
-        # Localized month name
         if language == "ru":
             month_name = MONTHS_RU[month] if month and 1 <= month <= 12 else ""
             status_text = "✅Оплачено" if status == "approved" else "В ожидании"
@@ -84,7 +69,6 @@ async def show_payment_history(message: Message, state: FSMContext):
             status_text = "✅To'langan" if status == "approved" else "Kutilmoqda"
             address_str = f"{city}, {district}, {quarter}-kvartal, {house}-uy, {entrance}-podyezd, {apartment}-kvartira"
 
-        # Format date
         date_str = ""
         if created_at:
             if isinstance(created_at, datetime):
@@ -146,7 +130,6 @@ async def select_city(message: Message, state: FSMContext):
         return
     await state.update_data(city=city_id)
 
-    # Use new logic: get all districts for the city, but only show those present in the DB
     all_districts = get_districts_by_city_id(city_id)
     db_district_ids = set(await houses.distinct("district", {"region_type": city_id}))
     districts = [d for d in all_districts if d["id"] in db_district_ids]
@@ -208,7 +191,6 @@ async def select_quarter(message: Message, state: FSMContext):
         return
     await state.update_data(quarter=quarter)
 
-    # Получаем список домов в этом квартале
     houses_list = await houses.distinct("house_number", {
         "region_type": data['city'],
         "district": data['district'],
@@ -399,7 +381,6 @@ async def select_apartment(message: Message, state: FSMContext):
         "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr"
     ]
 
-    from datetime import datetime, timedelta
     now = datetime.now()
     months = []
     for i in range(12):
@@ -452,25 +433,25 @@ async def select_month(message: Message, state: FSMContext):
         "Ноябрь" if language == "ru" else "Noyabr",
         "Декабрь" if language == "ru" else "Dekabr"
     ]
-    # Parse month and year from button text
+
     selected = message.text.strip().split()
     if len(selected) < 2:
         await message.answer("Пожалуйста, выберите месяц из списка." if language == "ru" else "Iltimos, oyni ro'yxatdan tanlang.")
         return
     month_name = selected[0]
     year = int(selected[1])
-    # Find month number
+
     try:
         month = month_names.index(month_name)
     except ValueError:
         await message.answer("Пожалуйста, выберите месяц из списка." if language == "ru" else "Iltimos, oyni ro'yxatdan tanlang.")
         return
     await state.update_data(year=year, month=month)
-    # Warn if already paid
+
     payment_status = data.get('payment_status', {})
     if payment_status.get((year, month)):
         await message.answer("Внимание: за этот месяц уже оплачено! Вы можете оплатить снова, если хотите." if language == "ru" else "Diqqat: bu oy uchun to'lov allaqachon qilingan! Yana to'lash mumkin.")
-    # Show address and month confirmation
+
     city_name = get_city_name(data['city'], language)
     district_name = get_district_name(data['district'], language)
     address_text = (
@@ -546,7 +527,6 @@ async def handle_receipt(message: Message, state: FSMContext):
     data = await state.get_data()
     file_id = message.photo[-1].file_id
 
-    # Only store minimal address info and selected year/month
     address = {
         "city": data['city'],
         "district": data['district'],
