@@ -18,26 +18,28 @@ def language_keyboard():
 
 def user_keyboard(language: str = "ru"):
     texts = {
-        "ru": {"pay": "💳 Оплатить домофон", "his": "🧾 Мои оплаты"},
-        "uz": {"pay": "💳 Domofon to'lash", "his": "🧾 To'lovlarim"}
+        "ru": {"pay": "💳 Оплатить домофон", "his": "🧾 Мои оплаты", "con": "📞Поддержка"},
+        "uz": {"pay": "💳 Domofon to'lash", "his": "🧾 To'lovlarim", "con": "📞Kontaktlar"}
     }
     return ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text=texts[language]["pay"])],
-            [KeyboardButton(text=texts[language]["his"])]
+            [KeyboardButton(text=texts[language]["his"])],
+            [KeyboardButton(text=texts[language]["con"])]
             ],
         resize_keyboard=True
     )
 
 def admin_keyboard(language: str = "ru"):
     texts = {
-        "ru": {"pay": "💳 Оплатить домофон", "add": "➕ Добавить подъезд", "his": "🧾 Мои оплаты"},
-        "uz": {"pay": "💳 Domofon to'lash", "add": "➕ Podyezd qo'shish", "his": "🧾 To'lovlarim"}
+        "ru": {"pay": "💳 Оплатить домофон", "add": "➕ Добавить подъезд", "his": "🧾 Мои оплаты", "con": "📞Поддержка"},
+        "uz": {"pay": "💳 Domofon to'lash", "add": "➕ Podyezd qo'shish", "his": "🧾 To'lovlarim", "con": "📞Kontaktlar"}
     }
     return ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text=texts[language]["pay"])],
             [KeyboardButton(text=texts[language]["his"])],
+            [KeyboardButton(text=texts[language]["con"])],
             [KeyboardButton(text=texts[language]["add"])]
         ],
         resize_keyboard=True
