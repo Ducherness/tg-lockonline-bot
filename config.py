@@ -3,6 +3,6 @@ from typing import List
 
 @dataclass
 class Config:
-    BOT_TOKEN: str = "7998596142:AAFavNCHrgUaCbL-kpVfPOWCRO0qCZXiEa8"
-    MONGO_URI: str = "mongodb+srv://reposgithub0:TNNr3YsOq8XVFDGF@cluster0.di9v5tu.mongodb.net/"
+    BOT_TOKEN: str = "."
+    MONGO_URI: str = "."
     ADMINS: List[int] = field(default_factory=lambda: [5497807188, 5427382883])
